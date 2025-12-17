@@ -1,0 +1,127 @@
+services:
+  # ===========================================
+  # MySQL Database
+  # ===========================================
+  db:
+    image: mysql:8.0
+    container_name: siren-mysql
+    restart: unless-stopped
+    ports:
+      - "${MYSQL_PORT:-3366}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./data:/data
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - siren-network
+
+  # ===========================================
+  # OAuth2 Service (Node.js)
+  # ===========================================
+  oauth2:
+    build:
+      context: ./services/oauth2
+      dockerfile: Dockerfile
+    container_name: siren-oauth2
+    restart: unless-stopped
+    ports:
+      - "${OAUTH2_PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+      OAUTH2_CLIENT_ID: ${OAUTH2_CLIENT_ID}
+      OAUTH2_CLIENT_SECRET: ${OAUTH2_CLIENT_SECRET}
+      OAUTH2_USER1: ${OAUTH2_USER1}
+      OAUTH2_USER2: ${OAUTH2_USER2}
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - siren-network
+
+  # ===========================================
+  # API MySQL (Python FastAPI)
+  # ===========================================
+  api-mysql:
+    build:
+      context: ./services/api-mysql
+      dockerfile: Dockerfile
+    container_name: siren-api-mysql
+    restart: unless-stopped
+    ports:
+      - "${API_MYSQL_PORT:-3001}:3001"
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      OAUTH2_URL: ${OAUTH2_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      oauth2:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - siren-network
+
+  # ===========================================
+  # API Spark (Node.js + Express)
+  # ===========================================
+  api-spark:
+    build:
+      context: ./services/api-spark
+      dockerfile: Dockerfile
+    container_name: siren-api-spark
+    restart: unless-stopped
+    ports:
+      - "${API_SPARK_PORT:-3002}:3002"
+    environment:
+      PORT: 3002
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      OAUTH2_URL: ${OAUTH2_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      oauth2:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - siren-network
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  siren-network:
+    driver: bridge
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  db_data:
+    driver: local
