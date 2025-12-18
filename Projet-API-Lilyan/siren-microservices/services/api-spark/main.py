@@ -4,6 +4,8 @@ FastAPI avec Spark Connect, Swagger, JSON-LD et OAuth2
 """
 from fastapi import FastAPI, Depends, APIRouter, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.models import OAuthFlows, OAuthFlowPassword
+from fastapi.security import OAuth2PasswordBearer
 from pyspark.sql import SparkSession
 from typing import List, Optional
 import httpx
@@ -143,7 +145,11 @@ app = FastAPI(
         "name": "ISC",
     },
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    swagger_ui_init_oauth={
+        "clientId": "client-app",
+        "appName": "API Spark"
+    }
 )
 
 # CORS
@@ -155,6 +161,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Personnaliser le schéma OpenAPI pour ajouter le bouton Authorize
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = app.openapi()
+
+    # Ajouter les schémas de sécurité
+    openapi_schema["components"]["securitySchemes"] = {
+        "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "OAuth2",
+            "description": "Token OAuth2 obtenu depuis http://oauth.siren.local/v1/oauth/token"
+        }
+    }
+
+    # Ajouter la sécurité globale (sauf pour /health)
+    for path, path_item in openapi_schema["paths"].items():
+        if "/health" not in path:
+            for method in path_item.values():
+                if isinstance(method, dict) and "security" not in method:
+                    method["security"] = [{"bearerAuth": []}]
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 # Router pour API v1
 v1_router = APIRouter(prefix="/v1", tags=["v1"])
