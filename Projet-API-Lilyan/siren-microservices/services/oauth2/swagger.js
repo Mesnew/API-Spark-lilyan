@@ -22,12 +22,16 @@ const options = {
     },
     servers: [
       {
+        url: 'http://oauth.siren.local',
+        description: 'Serveur via Nginx Proxy (recommandé)'
+      },
+      {
         url: 'http://localhost:3000',
-        description: 'Serveur de développement'
+        description: 'Serveur de développement direct'
       },
       {
         url: 'http://oauth2:3000',
-        description: 'Serveur Docker'
+        description: 'Serveur Docker interne'
       }
     ],
     components: {
@@ -68,7 +72,7 @@ const options = {
             },
             client_secret: {
               type: 'string',
-              example: 'secret123',
+              example: 'Dev_Client_Secret_2024!',
               description: 'Secret du client'
             },
             username: {
@@ -78,7 +82,7 @@ const options = {
             },
             password: {
               type: 'string',
-              example: 'password123',
+              example: 'DevUser1Pass2024!',
               description: 'Mot de passe (requis pour grant_type=password)'
             },
             refresh_token: {

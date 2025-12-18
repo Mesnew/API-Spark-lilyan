@@ -59,7 +59,7 @@ app = FastAPI(
 
     Tous les endpoints (sauf `/health`) nécessitent un token OAuth2 valide.
 
-    1. Obtenir un token depuis l'API OAuth2: `POST http://localhost:3000/oauth/token`
+    1. Obtenir un token depuis l'API OAuth2: `POST http://oauth.siren.local/v1/oauth/token`
     2. Utiliser le token dans le header: `Authorization: Bearer <token>`
 
     ## Pagination
@@ -102,8 +102,9 @@ async def startup():
     """Événement au démarrage"""
     print("=" * 50)
     print("API MySQL démarrée (v1)")
-    print("Documentation: http://localhost:3001/docs")
-    print("Endpoints: http://localhost:3001/v1/")
+    print("Documentation: http://mysql.siren.local/docs")
+    print("Endpoints: http://mysql.siren.local/v1/")
+    print("Direct (dev): http://localhost:3001/")
     print("=" * 50)
 
 

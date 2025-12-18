@@ -127,7 +127,7 @@ app = FastAPI(
 
     Tous les endpoints (sauf `/health`) nécessitent un token OAuth2 valide.
 
-    1. Obtenir un token depuis l'API OAuth2: `POST http://localhost:3000/oauth/token`
+    1. Obtenir un token depuis l'API OAuth2: `POST http://oauth.siren.local/v1/oauth/token`
     2. Utiliser le token dans le header: `Authorization: Bearer <token>`
 
     ## Technologie
@@ -163,9 +163,11 @@ v1_router = APIRouter(prefix="/v1", tags=["v1"])
 async def startup():
     """Événement au démarrage"""
     print("=" * 50)
-    print("API Spark démarrée")
+    print("API Spark démarrée (v1)")
     print(f"Spark Connect: {SPARK_CONNECT_HOST}:{SPARK_CONNECT_PORT}")
-    print("Documentation: http://localhost:3002/docs")
+    print("Documentation: http://spark.siren.local/docs")
+    print("Endpoints: http://spark.siren.local/v1/")
+    print("Direct (dev): http://localhost:3002/")
     print("=" * 50)
 
 
