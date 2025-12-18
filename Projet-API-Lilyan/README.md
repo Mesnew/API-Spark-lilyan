@@ -47,6 +47,24 @@ cd ../siren-microservices
 docker-compose up -d
 ```
 
+### 5. Configurer les noms de domaine locaux
+
+**IMPORTANT** : Les APIs utilisent Nginx avec des noms de domaine virtuels. Vous devez configurer votre fichier `/etc/hosts` :
+
+```bash
+sudo nano /etc/hosts
+```
+
+Ajoutez ces lignes à la fin du fichier :
+
+```
+127.0.0.1 oauth.siren.local
+127.0.0.1 mysql.siren.local
+127.0.0.1 spark.siren.local
+```
+
+Sauvegardez (`Ctrl+O`, `Entrée`, `Ctrl+X`).
+
 ## ✅ C'est prêt !
 
 Vérifier :
@@ -61,15 +79,15 @@ Tester :
 
 ## Accès
 
-- **OAuth2** : http://localhost:3000/api-docs
-- **API MySQL** : http://localhost:3001/docs
-- **API Spark** : http://localhost:3002/docs
+- **OAuth2** : http://oauth.siren.local/api-docs
+- **API MySQL** : http://mysql.siren.local/docs
+- **API Spark** : http://spark.siren.local/docs
 
 ## Obtenir un token
 
 ### Option 1 : Swagger UI
 
-1. Aller sur http://localhost:3000/api-docs
+1. Aller sur http://oauth.siren.local/api-docs
 2. Endpoint `POST /v1/oauth/token`
 3. Cliquer "Try it out"
 4. Remplir :
@@ -83,7 +101,7 @@ Tester :
 ### Option 2 : Terminal
 
 ```bash
-curl -X POST http://localhost:3000/v1/oauth/token \
+curl -X POST http://oauth.siren.local/v1/oauth/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=password&username=user1&password=DevUser1Pass2024!&client_id=client-app&client_secret=Dev_Client_Secret_2024!"
 ```
@@ -95,11 +113,11 @@ Remplacer `VOTRE_TOKEN` par le token obtenu :
 ```bash
 # API MySQL - Recherche par nom
 curl -H "Authorization: Bearer VOTRE_TOKEN" \
-  "http://localhost:3001/v1/entreprises/search?nom=TEST"
+  "http://mysql.siren.local/v1/entreprises/search?nom=TEST"
 
 # API Spark - Top 10 activités
 curl -H "Authorization: Bearer VOTRE_TOKEN" \
-  "http://localhost:3002/v1/stats/activites/top?limit=10"
+  "http://spark.siren.local/v1/stats/activites/top?limit=10"
 ```
 
 ## Arrêter
